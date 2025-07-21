@@ -1,13 +1,4 @@
 <?php
-/**
- * Encrypt/decrypt with encryptionKey.
- *
- * @author      Alex Bilbie <hello@alexbilbie.com>
- * @copyright   Copyright (c) Alex Bilbie
- * @license     http://mit-license.org/
- *
- * @link        https://github.com/thephpleague/oauth2-server
- */
 
 namespace League\OAuth2\Server;
 
@@ -35,12 +26,12 @@ trait CryptTrait
     protected function encrypt($unencryptedData)
     {
         try {
-            if ($this->encryptionKey instanceof Key) {
-                return Crypto::encrypt($unencryptedData, $this->encryptionKey);
+            if (!$this->encryptionKey) {
+                $this->encryptionKey = Key::loadFromAsciiSafeString(config('app.encryption_key'));
             }
 
-            if (\is_string($this->encryptionKey)) {
-                return Crypto::encryptWithPassword($unencryptedData, $this->encryptionKey);
+            if ($this->encryptionKey instanceof Key) {
+                return Crypto::encrypt($unencryptedData, $this->encryptionKey);
             }
 
             throw new LogicException('Encryption key not set when attempting to encrypt');
@@ -61,12 +52,12 @@ trait CryptTrait
     protected function decrypt($encryptedData)
     {
         try {
-            if ($this->encryptionKey instanceof Key) {
-                return Crypto::decrypt($encryptedData, $this->encryptionKey);
+            if (!$this->encryptionKey) {
+                $this->encryptionKey = Key::loadFromAsciiSafeString(config('app.encryption_key'));
             }
 
-            if (\is_string($this->encryptionKey)) {
-                return Crypto::decryptWithPassword($encryptedData, $this->encryptionKey);
+            if ($this->encryptionKey instanceof Key) {
+                return Crypto::decrypt($encryptedData, $this->encryptionKey);
             }
 
             throw new LogicException('Encryption key not set when attempting to decrypt');
@@ -76,12 +67,15 @@ trait CryptTrait
     }
 
     /**
-     * Set the encryption key
+     * Set the encryption key manually (optional if you want to override lazy load).
      *
-     * @param string|Key $key
+     * @param string|Key|null $key
      */
-    public function setEncryptionKey($key = null)
-    {
-        $this->encryptionKey = $key;
-    }
+ public function setEncryptionKey($key = null)
+{
+
+
+    $asciiSafeKey = config('app.encryption_key');
+    $this->encryptionKey = Key::loadFromAsciiSafeString($asciiSafeKey);
+}
 }
